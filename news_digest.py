@@ -2,134 +2,74 @@ import os
 import datetime as dt
 from dateutil import tz
 import requests
-from openai import OpenAI
+import google.generativeai as genai
 
 # Configuration
-MODEL = "gpt-4-turbo-preview"
 TIMEZONE = "America/New_York"
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]  # Add this to GitHub secrets
 SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
-NEWSAPI_KEY = os.environ["NEWSAPI_KEY"]
 
-client = OpenAI(api_key=OPENAI_API_KEY)
-today = dt.datetime.now(tz.gettz(TIMEZONE)).date()
-yesterday = today - dt.timedelta(days=7)  # Changed from 2 to 7 days
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
 
-# Fetch real news from NewsAPI
-def fetch_ai_news():
-    """Fetch AI-related news from the last 7 days"""
-    
-    queries = [
-        "artificial intelligence",
-        "OpenAI OR Anthropic OR Google AI",
-        "AI regulation OR AI policy",
-        "NVIDIA OR AMD AI chips",
-        "large language model OR LLM"
-    ]
-    
-    all_articles = []
-    
-    for query in queries:
-        url = "https://newsapi.org/v2/everything"
-        params = {
-            "q": query,
-            "from": yesterday.isoformat(),
-            "to": today.isoformat(),
-            "language": "en",
-            "sortBy": "relevancy",
-            "pageSize": 20,
-            "apiKey": NEWSAPI_KEY
-        }
-        
-        try:
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-            
-            if data.get("status") == "ok":
-                articles_found = data.get("articles", [])
-                print(f"  ✓ '{query}': found {len(articles_found)} articles")
-                all_articles.extend(articles_found)
-            else:
-                print(f"  ✗ '{query}': status={data.get('status')}, message={data.get('message', 'N/A')}")
-        except Exception as e:
-            print(f"  ✗ Error fetching '{query}': {e}")
-    
-    # Remove duplicates by URL
-    seen_urls = set()
-    unique_articles = []
-    for article in all_articles:
-        url = article.get("url")
-        if url and url not in seen_urls:
-            seen_urls.add(url)
-            unique_articles.append(article)
-    
-    return unique_articles[:30]
+today = dt.datetime.now(tz.gettz(TIMEZONE)).date().isoformat()
+current_time = dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%I:%M %p %Z')
 
-# Fetch news
-print("📡 Fetching latest AI news...")
-articles = fetch_ai_news()
-print(f"✅ Found {len(articles)} articles")
+print("🚀 Starting AI News Digest with Gemini...")
+print(f"📅 Date: {today}")
 
-if not articles:
-    print("⚠️  No articles found. Exiting.")
-    blocks = [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"⚠️ *No AI news found for {today.isoformat()}*"
-            }
-        }
-    ]
-    requests.post(SLACK_WEBHOOK_URL, json={"blocks": blocks}, timeout=30)
-    exit(0)
+# Create the model with Google Search grounding
+model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash-latest',
+    tools='google_search_retrieval'  # This enables web search!
+)
 
-# Prepare context for GPT
-news_context = "\n\n".join([
-    f"**{art['title']}**\n{art.get('description', 'No description')}\nSource: {art['source']['name']}\nURL: {art['url']}\nPublished: {art['publishedAt']}"
-    for art in articles
-])
+prompt = f"""You are an expert AI/tech news editor creating today's digest for {today} ({TIMEZONE}).
 
-prompt = f"""You are a news desk editor creating a daily AI/tech digest for {today.isoformat()} ({TIMEZONE}).
+**Task:** Search the web and create a comprehensive daily digest of AI and tech news from the LAST 24-48 HOURS.
 
-Here are the latest news articles from the past week:
+**Required Sections:**
+1. 🔬 **Research & Models** - New AI research, papers, open-source LLMs
+2. ⚖️ **Policy & Regulation** - AI laws, government actions, compliance news
+3. 💻 **Hardware & Chips** - NVIDIA, AMD, TSMC, Intel, AI accelerators
+4. 🚀 **Product Launches** - OpenAI, Google, Microsoft, Anthropic, Meta releases
+5. 🎯 **Industry News** - Funding, acquisitions, partnerships, wild cards
 
-{news_context}
+**Format Requirements:**
+- Each section: 2-4 items (10-15 items total)
+- Each item: **Bold headline** + 1-2 sentence summary
+- Include source links in markdown: [Source Name](url)
+- Use bullet points (•) for items
+- Be concise but informative
 
-**Your task:**
-Create a concise, well-organized Slack digest with:
+**Focus on:**
+- Breaking news from today or yesterday
+- Significant announcements and developments
+- Credible sources (tech publications, official announcements)
+- Accurate, factual information with citations
 
-**Structure:**
-- 3-5 sections (e.g., Research, Policy & Regulation, Hardware/Chips, Product Launches, Industry News)
-- 10-14 of the MOST IMPORTANT and RECENT items
-- Each item: **Bold headline** + 1-sentence takeaway + [link](url)
-
-**Guidelines:**
-- Prioritize the most recent articles (last 24-48 hours if available)
-- Focus on significant developments only
-- Group related stories together
-- Include the actual links from the articles
-- Use Markdown formatting for Slack
-- Make it scannable and informative
-
-Create the digest now:"""
+Search the web now and create the digest:"""
 
 try:
-    # Generate digest with GPT
-    print("🤖 Generating digest with GPT-4...")
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": "You are an expert tech news editor specializing in AI."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.5,
-        max_tokens=2500
+    print("🔍 Searching the web and generating digest...")
+    
+    # Generate content with web search
+    response = model.generate_content(
+        prompt,
+        generation_config=genai.types.GenerationConfig(
+            temperature=0.4,
+            max_output_tokens=3000,
+        )
     )
     
-    # FIXED: Correct way to extract content from the response
-    digest_md = response.choices[0].message.content.strip()
+    digest_text = response.text.strip()
+    
+    print(f"✅ Digest generated ({len(digest_text)} characters)")
+    
+    # Check if we got grounding metadata (sources used)
+    if hasattr(response, 'grounding_metadata') and response.grounding_metadata:
+        num_sources = len(response.grounding_metadata.grounding_chunks) if hasattr(response.grounding_metadata, 'grounding_chunks') else 0
+        print(f"📚 Used {num_sources} web sources")
     
     # Format for Slack
     blocks = [
@@ -137,22 +77,25 @@ try:
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": f"📰 AI/Tech Daily Digest — {today.isoformat()}"
+                "text": f"📰 AI/Tech Daily Digest — {today}"
             }
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": digest_md
+                "text": digest_text
             }
+        },
+        {
+            "type": "divider"
         },
         {
             "type": "context",
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": f"_Generated from {len(articles)} articles • {dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%I:%M %p %Z')}_"
+                    "text": f"_Powered by Gemini 1.5 + Google Search • Generated at {current_time}_"
                 }
             ]
         }
@@ -167,9 +110,8 @@ try:
     )
     res.raise_for_status()
     
-    print(f"✅ Successfully posted to Slack!")
-    print(f"📊 Articles processed: {len(articles)}")
-    print(f"📝 Digest length: {len(digest_md)} characters")
+    print("✅ Successfully posted to Slack!")
+    print(f"📊 Final digest: {len(digest_text)} characters")
     
 except Exception as e:
     print(f"❌ Error: {str(e)}")
@@ -186,5 +128,10 @@ except Exception as e:
             }
         }
     ]
-    requests.post(SLACK_WEBHOOK_URL, json={"blocks": error_blocks}, timeout=30)
+    try:
+        requests.post(SLACK_WEBHOOK_URL, json={"blocks": error_blocks}, timeout=30)
+    except:
+        pass
     raise
+
+print("🎉 Done!")

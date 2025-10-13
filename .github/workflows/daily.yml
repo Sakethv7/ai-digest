@@ -2,7 +2,7 @@ name: Daily AI Digest
 
 on:
   schedule:
-    - cron: "15 12 * * *"  # 12:15 UTC daily (~08:15 AM New York). Change if needed
+    - cron: "15 12 * * *"  # 12:15 UTC daily (~08:15 AM New York)
   workflow_dispatch: {}  # Allows manual trigger from Actions tab
 
 jobs:
@@ -24,6 +24,5 @@ jobs:
       - name: Run digest script
         run: python news_digest.py
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
