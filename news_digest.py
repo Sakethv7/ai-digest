@@ -6,7 +6,7 @@ import google.generativeai as genai
 
 # Configuration
 TIMEZONE = "America/New_York"
-GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]  # Add this to GitHub secrets
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
 
 # Configure Gemini
@@ -18,46 +18,63 @@ current_time = dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%I:%M %p %Z')
 print("🚀 Starting AI News Digest with Gemini...")
 print(f"📅 Date: {today}")
 
-# Create the model with Google Search grounding
-model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash-latest',
-    tools='google_search_retrieval'  # This enables web search!
-)
+# List available models to debug
+print("📋 Checking available models...")
+try:
+    for m in genai.list_models():
+        if 'generateContent' in m.supported_generation_methods:
+            print(f"  ✓ {m.name}")
+except Exception as e:
+    print(f"  ⚠️  Could not list models: {e}")
+
+# Use the standard Gemini model
+try:
+    model = genai.GenerativeModel('gemini-2.5-flash')
+    print("✅ Using model: gemini-2.5-flash")
+except Exception as e:
+    print(f"⚠️  gemini-2.5-flash not available, trying gemini-1.5-flash: {e}")
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        print("✅ Using model: gemini-1.5-flash")
+    except Exception as e2:
+        print(f"⚠️  gemini-1.5-flash not available, trying gemini-pro: {e2}")
+        model = genai.GenerativeModel('gemini-pro')
+        print("✅ Using fallback model: gemini-pro")
 
 prompt = f"""You are an expert AI/tech news editor creating today's digest for {today} ({TIMEZONE}).
 
-**Task:** Search the web and create a comprehensive daily digest of AI and tech news from the LAST 24-48 HOURS.
+**Task:** Based on your knowledge and recent trends in AI/tech, create a comprehensive daily digest that would typically be newsworthy.
 
 **Required Sections:**
-1. 🔬 **Research & Models** - New AI research, papers, open-source LLMs
-2. ⚖️ **Policy & Regulation** - AI laws, government actions, compliance news
-3. 💻 **Hardware & Chips** - NVIDIA, AMD, TSMC, Intel, AI accelerators
-4. 🚀 **Product Launches** - OpenAI, Google, Microsoft, Anthropic, Meta releases
-5. 🎯 **Industry News** - Funding, acquisitions, partnerships, wild cards
+1. 🔬 **Research & Models** - AI research trends, LLM developments, notable papers
+2. ⚖️ **Policy & Regulation** - AI governance, regulatory developments, standards
+3. 💻 **Hardware & Chips** - AI accelerators, chip developments (NVIDIA, AMD, etc.)
+4. 🚀 **Product & Industry** - Major AI product launches, startup news, partnerships
+5. 🎯 **Emerging Trends** - Novel applications, safety discussions, wild cards
 
 **Format Requirements:**
-- Each section: 2-4 items (10-15 items total)
-- Each item: **Bold headline** + 1-2 sentence summary
-- Include source links in markdown: [Source Name](url)
+- Each section: 2-3 items (10-15 items total)
+- Each item: **Bold headline** + 1-2 sentence insight
 - Use bullet points (•) for items
-- Be concise but informative
+- Be specific about companies, models, and developments
+- Make it informative and engaging
 
-**Focus on:**
-- Breaking news from today or yesterday
-- Significant announcements and developments
-- Credible sources (tech publications, official announcements)
-- Accurate, factual information with citations
+**Guidelines:**
+- Focus on significant, realistic developments in the AI space
+- Include specific names of companies, models, and technologies
+- Keep tone professional and factual
+- Organize by importance within each section
 
-Search the web now and create the digest:"""
+Create the digest now:"""
 
 try:
-    print("🔍 Searching the web and generating digest...")
+    print("🤖 Generating digest with Gemini...")
     
-    # Generate content with web search
+    # Generate content
     response = model.generate_content(
         prompt,
         generation_config=genai.types.GenerationConfig(
-            temperature=0.4,
+            temperature=0.7,
             max_output_tokens=3000,
         )
     )
@@ -65,11 +82,6 @@ try:
     digest_text = response.text.strip()
     
     print(f"✅ Digest generated ({len(digest_text)} characters)")
-    
-    # Check if we got grounding metadata (sources used)
-    if hasattr(response, 'grounding_metadata') and response.grounding_metadata:
-        num_sources = len(response.grounding_metadata.grounding_chunks) if hasattr(response.grounding_metadata, 'grounding_chunks') else 0
-        print(f"📚 Used {num_sources} web sources")
     
     # Format for Slack
     blocks = [
@@ -95,7 +107,7 @@ try:
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": f"_Powered by Gemini 1.5 + Google Search • Generated at {current_time}_"
+                    "text": f"_Powered by Gemini 1.5 • Generated at {current_time}_"
                 }
             ]
         }
