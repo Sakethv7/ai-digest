@@ -28,11 +28,22 @@ except Exception as e:
     print(f"  ⚠️  Could not list models: {e}")
 
 # Use the standard Gemini model (free tier compatible)
-try:
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    print("✅ Using model: gemini-1.5-flash")
-except Exception as e:
-    print(f"❌ Failed to initialize gemini-1.5-flash: {e}")
+# Try models in order of preference
+model = None
+model_names = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']
+
+for model_name in model_names:
+    try:
+        model = genai.GenerativeModel(model_name)
+        print(f"✅ Using model: {model_name}")
+        break
+    except Exception as e:
+        print(f"⚠️  {model_name} not available: {e}")
+        continue
+
+if model is None:
+    error_msg = "Could not initialize any Gemini model"
+    print(f"❌ {error_msg}")
     # Post error to Slack and exit
     error_blocks = [
         {
@@ -46,7 +57,7 @@ except Exception as e:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"Could not initialize Gemini model (free tier). Error:\n```{str(e)}```"
+                "text": f"Tried models: {', '.join(model_names)}\n\nNo compatible models available on free tier."
             }
         }
     ]
@@ -54,7 +65,7 @@ except Exception as e:
         requests.post(SLACK_WEBHOOK_URL, json={"blocks": error_blocks}, timeout=30)
     except:
         pass
-    raise
+    raise RuntimeError(error_msg)
 
 prompt = f"""You are an expert AI/tech news editor creating today's digest for {today}.
 
