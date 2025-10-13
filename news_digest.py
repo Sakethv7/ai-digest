@@ -13,11 +13,11 @@ NEWSAPI_KEY = os.environ["NEWSAPI_KEY"]
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 today = dt.datetime.now(tz.gettz(TIMEZONE)).date()
-yesterday = today - dt.timedelta(days=2)
+yesterday = today - dt.timedelta(days=7)  # Changed from 2 to 7 days
 
 # Fetch real news from NewsAPI
 def fetch_ai_news():
-    """Fetch AI-related news from the last 48 hours"""
+    """Fetch AI-related news from the last 7 days"""
     
     queries = [
         "artificial intelligence",
@@ -47,9 +47,13 @@ def fetch_ai_news():
             data = response.json()
             
             if data.get("status") == "ok":
-                all_articles.extend(data.get("articles", []))
+                articles_found = data.get("articles", [])
+                print(f"  ✓ '{query}': found {len(articles_found)} articles")
+                all_articles.extend(articles_found)
+            else:
+                print(f"  ✗ '{query}': status={data.get('status')}, message={data.get('message', 'N/A')}")
         except Exception as e:
-            print(f"Error fetching news for '{query}': {e}")
+            print(f"  ✗ Error fetching '{query}': {e}")
     
     # Remove duplicates by URL
     seen_urls = set()
@@ -89,7 +93,7 @@ news_context = "\n\n".join([
 
 prompt = f"""You are a news desk editor creating a daily AI/tech digest for {today.isoformat()} ({TIMEZONE}).
 
-Here are the latest news articles from the past 48 hours:
+Here are the latest news articles from the past week:
 
 {news_context}
 
@@ -98,10 +102,11 @@ Create a concise, well-organized Slack digest with:
 
 **Structure:**
 - 3-5 sections (e.g., Research, Policy & Regulation, Hardware/Chips, Product Launches, Industry News)
-- 10-14 of the MOST IMPORTANT items
+- 10-14 of the MOST IMPORTANT and RECENT items
 - Each item: **Bold headline** + 1-sentence takeaway + [link](url)
 
 **Guidelines:**
+- Prioritize the most recent articles (last 24-48 hours if available)
 - Focus on significant developments only
 - Group related stories together
 - Include the actual links from the articles
