@@ -8,6 +8,7 @@ import google.generativeai as genai
 TIMEZONE = "America/New_York"
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
+SLACK_USER_ID = os.environ.get("SLACK_USER_ID", "")  # Optional: Set this in GitHub Secrets
 
 # Configure Gemini
 genai.configure(api_key=GEMINI_API_KEY)
@@ -88,9 +89,9 @@ FORMAT REQUIREMENTS (CRITICAL):
 Example format:
 🔬 *Research & Models*
 
-• *OpenAI Releases GPT-5* OpenAI has launched its latest model with enhanced reasoning capabilities. The model shows significant improvements in mathematical and coding tasks.
+- *OpenAI Releases GPT-5* OpenAI has launched its latest model with enhanced reasoning capabilities. The model shows significant improvements in mathematical and coding tasks.
 
-• *Anthropic Announces Claude 4* The new model features extended context windows and improved safety measures. Early benchmarks show strong performance across multiple domains.
+- *Anthropic Announces Claude 4* The new model features extended context windows and improved safety measures. Early benchmarks show strong performance across multiple domains.
 
 Generate the digest now with realistic, specific AI/tech developments:"""
 
@@ -146,11 +147,20 @@ try:
                     "text": f"📅 {dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%A, %B %d, %Y')}"
                 }
             ]
-        },
-        {
-            "type": "divider"
         }
     ]
+    
+    # Add user mention if SLACK_USER_ID is set
+    if SLACK_USER_ID:
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"👋 <@{SLACK_USER_ID}> Your daily AI digest is ready!"
+            }
+        })
+    
+    blocks.append({"type": "divider"})
     
     # Add each section as a separate block
     for section in sections:
@@ -183,7 +193,10 @@ try:
     print("📤 Posting to Slack...")
     res = requests.post(
         SLACK_WEBHOOK_URL,
-        json={"blocks": blocks},
+        json={
+            "blocks": blocks,
+            "text": f"📰 AI/Tech Daily Digest — {today}"  # Fallback text for notifications
+        },
         timeout=30
     )
     res.raise_for_status()
