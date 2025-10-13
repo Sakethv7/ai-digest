@@ -41,31 +41,32 @@ except Exception as e:
         model = genai.GenerativeModel('gemini-pro')
         print("✅ Using fallback model: gemini-pro")
 
-prompt = f"""You are an expert AI/tech news editor creating today's digest for {today} ({TIMEZONE}).
+prompt = f"""You are an expert AI/tech news editor creating today's digest for {today}.
 
-**Task:** Based on your knowledge and recent trends in AI/tech, create a comprehensive daily digest that would typically be newsworthy.
+Create a comprehensive daily AI/tech digest with the following sections:
 
-**Required Sections:**
-1. 🔬 **Research & Models** - AI research trends, LLM developments, notable papers
-2. ⚖️ **Policy & Regulation** - AI governance, regulatory developments, standards
-3. 💻 **Hardware & Chips** - AI accelerators, chip developments (NVIDIA, AMD, etc.)
-4. 🚀 **Product & Industry** - Major AI product launches, startup news, partnerships
-5. 🎯 **Emerging Trends** - Novel applications, safety discussions, wild cards
+1. 🔬 Research & Models
+2. ⚖️ Policy & Regulation  
+3. 💻 Hardware & Chips
+4. 🚀 Product & Industry
+5. 🎯 Emerging Trends
 
-**Format Requirements:**
-- Each section: 2-3 items (10-15 items total)
-- Each item: **Bold headline** + 1-2 sentence insight
-- Use bullet points (•) for items
-- Be specific about companies, models, and developments
-- Make it informative and engaging
+FORMAT REQUIREMENTS (CRITICAL):
+- Each section should have 2-3 news items
+- Format each item as: *Headline* followed by 1-2 sentences of explanation
+- Use • bullets for each item
+- Do NOT use ** or ### markdown - use *text* for bold instead
+- Keep headlines concise and punchy
+- Be specific about companies, models, and technologies
 
-**Guidelines:**
-- Focus on significant, realistic developments in the AI space
-- Include specific names of companies, models, and technologies
-- Keep tone professional and factual
-- Organize by importance within each section
+Example format:
+🔬 *Research & Models*
 
-Create the digest now:"""
+• *OpenAI Releases GPT-5* OpenAI has launched its latest model with enhanced reasoning capabilities. The model shows significant improvements in mathematical and coding tasks.
+
+• *Anthropic Announces Claude 4* The new model features extended context windows and improved safety measures. Early benchmarks show strong performance across multiple domains.
+
+Generate the digest now with realistic, specific AI/tech developments:"""
 
 try:
     print("🤖 Generating digest with Gemini...")
@@ -83,65 +84,58 @@ try:
     
     print(f"✅ Digest generated ({len(digest_text)} characters)")
     
-    # Split digest if it's too long for Slack (max 3000 chars per block)
-    max_length = 2900  # Leave some buffer
+    # Split into sections for better Slack rendering
+    sections = []
+    current_section = ""
     
-    if len(digest_text) <= max_length:
-        # Short enough - use single block
-        digest_blocks = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": digest_text
-                }
-            }
-        ]
-    else:
-        # Too long - split into multiple blocks
-        print(f"⚠️  Digest too long ({len(digest_text)} chars), splitting...")
+    for line in digest_text.split('\n'):
+        line_stripped = line.strip()
         
-        # Split by sections (look for section headers with emoji)
-        sections = []
-        current_section = ""
-        
-        for line in digest_text.split('\n'):
-            if line.strip().startswith('**') and any(emoji in line for emoji in ['🔬', '⚖️', '💻', '🚀', '🎯']):
-                # New section header found
-                if current_section:
-                    sections.append(current_section.strip())
-                current_section = line + '\n'
-            else:
-                current_section += line + '\n'
-        
-        if current_section:
-            sections.append(current_section.strip())
-        
-        # Create blocks for each section
-        digest_blocks = []
-        for section in sections:
-            if section:
-                digest_blocks.append({
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": section
-                    }
-                })
+        # Check if this is a section header (emoji at start)
+        if line_stripped and line_stripped[0] in ['🔬', '⚖️', '💻', '🚀', '🎯']:
+            if current_section:
+                sections.append(current_section.strip())
+            current_section = line + '\n'
+        else:
+            current_section += line + '\n'
     
-    # Format for Slack
+    if current_section:
+        sections.append(current_section.strip())
+    
+    # Build Slack blocks
     blocks = [
         {
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": f"📰 AI/Tech Daily Digest — {today}"
+                "text": f"📰 AI/Tech Daily Digest",
+                "emoji": True
             }
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"📅 {dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%A, %B %d, %Y')}"
+                }
+            ]
+        },
+        {
+            "type": "divider"
         }
     ]
     
-    # Add digest blocks
-    blocks.extend(digest_blocks)
+    # Add each section as a separate block
+    for section in sections:
+        if section.strip():
+            blocks.append({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": section
+                }
+            })
     
     # Add footer
     blocks.extend([
@@ -153,7 +147,7 @@ try:
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": f"_Powered by Gemini 2.5 • Generated at {current_time}_"
+                    "text": f"🤖 _Powered by Gemini 2.5 Flash • Generated at {current_time}_"
                 }
             ]
         }
@@ -179,10 +173,17 @@ except Exception as e:
     # Post error to Slack
     error_blocks = [
         {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": "⚠️ Daily Digest Failed"
+            }
+        },
+        {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"⚠️ *Daily Digest Failed*\n```{str(e)}```"
+                "text": f"```{str(e)}```"
             }
         }
     ]
