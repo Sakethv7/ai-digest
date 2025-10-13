@@ -83,6 +83,52 @@ try:
     
     print(f"✅ Digest generated ({len(digest_text)} characters)")
     
+    # Split digest if it's too long for Slack (max 3000 chars per block)
+    max_length = 2900  # Leave some buffer
+    
+    if len(digest_text) <= max_length:
+        # Short enough - use single block
+        digest_blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": digest_text
+                }
+            }
+        ]
+    else:
+        # Too long - split into multiple blocks
+        print(f"⚠️  Digest too long ({len(digest_text)} chars), splitting...")
+        
+        # Split by sections (look for section headers with emoji)
+        sections = []
+        current_section = ""
+        
+        for line in digest_text.split('\n'):
+            if line.strip().startswith('**') and any(emoji in line for emoji in ['🔬', '⚖️', '💻', '🚀', '🎯']):
+                # New section header found
+                if current_section:
+                    sections.append(current_section.strip())
+                current_section = line + '\n'
+            else:
+                current_section += line + '\n'
+        
+        if current_section:
+            sections.append(current_section.strip())
+        
+        # Create blocks for each section
+        digest_blocks = []
+        for section in sections:
+            if section:
+                digest_blocks.append({
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": section
+                    }
+                })
+    
     # Format for Slack
     blocks = [
         {
@@ -91,14 +137,14 @@ try:
                 "type": "plain_text",
                 "text": f"📰 AI/Tech Daily Digest — {today}"
             }
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": digest_text
-            }
-        },
+        }
+    ]
+    
+    # Add digest blocks
+    blocks.extend(digest_blocks)
+    
+    # Add footer
+    blocks.extend([
         {
             "type": "divider"
         },
@@ -107,11 +153,11 @@ try:
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": f"_Powered by Gemini 1.5 • Generated at {current_time}_"
+                    "text": f"_Powered by Gemini 2.5 • Generated at {current_time}_"
                 }
             ]
         }
-    ]
+    ])
     
     # Post to Slack
     print("📤 Posting to Slack...")
