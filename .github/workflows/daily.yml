@@ -2,9 +2,9 @@ name: Daily AI Digest
 
 # Triggers the workflow
 on:
-  # FIX: Correct indentation for the cron schedule
+  # TEMPORARY TEST SCHEDULE: Runs at 13:10 UTC (9:10 AM EDT) on all days
   schedule:
-    - cron: "15 12 * * *"  # 12:15 UTC daily (~08:15 AM New York/EDT)
+    - cron: "10 13 * * *"  # <-- This is the only change for the test
   
   # Allows manual trigger from the Actions tab
   workflow_dispatch: {}
@@ -24,10 +24,6 @@ jobs:
           python-version: "3.11"
       
       - name: 📦 Install dependencies
-        # This assumes your requirements.txt is correct:
-        # google-generativeai
-        # python-dateutil
-        # requests
         run: pip install -r requirements.txt
       
       - name: 🚀 Run digest script
