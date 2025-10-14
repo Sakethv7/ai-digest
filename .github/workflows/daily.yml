@@ -1,29 +1,39 @@
 name: Daily AI Digest
 
+# Triggers the workflow
 on:
+  # FIX: Correct indentation for the cron schedule
   schedule:
-    - cron: "15 12 * * *"  # 12:15 UTC daily (~08:15 AM New York)
-  workflow_dispatch: {}  # Allows manual trigger from Actions tab
+    - cron: "15 12 * * *"  # 12:15 UTC daily (~08:15 AM New York/EDT)
+  
+  # Allows manual trigger from the Actions tab
+  workflow_dispatch: {}
 
 jobs:
   run:
+    # Environment to run the job on
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
+      - name: ⬇️ Checkout code
         uses: actions/checkout@v4
       
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       
-      - name: Install dependencies
+      - name: 📦 Install dependencies
+        # This assumes your requirements.txt is correct:
+        # google-generativeai
+        # python-dateutil
+        # requests
         run: pip install -r requirements.txt
       
-      - name: Run digest script
+      - name: 🚀 Run digest script
         run: python news_digest.py
         env:
+          # Inject secrets from the repository settings
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_USER_ID: ${{ secrets.SLACK_USER_ID }}
