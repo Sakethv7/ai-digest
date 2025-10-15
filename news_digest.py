@@ -1,4 +1,13 @@
-import os
+digest_text = response.text.strip()
+    
+    # Clean up unwanted markdown formatting
+    digest_text = digest_text.replace('##', '')  # Remove ## headers
+    digest_text = digest_text.replace('###', '')  # Remove ### headers
+    
+    # Remove any intro/outro paragraphs (text before first emoji section)
+    lines = digest_text.split('\n')
+    cleaned_lines = []
+    starteimport os
 import datetime as dt
 from dateutil import tz
 import requests
@@ -43,27 +52,46 @@ except Exception as e:
 
 prompt = f"""You are an expert AI/tech news editor creating today's digest for {today} ({TIMEZONE}).
 
-**Task:** Based on your knowledge and recent trends in AI/tech, create a comprehensive daily digest that would typically be newsworthy.
+**Task:** Create a comprehensive daily digest with SEPARATE sections for USA, India, and global coverage.
 
-**Required Sections:**
-1. 🔬 **Research & Models** - AI research trends, LLM developments, notable papers
-2. ⚖️ **Policy & Regulation** - AI governance, regulatory developments, standards
-3. 💻 **Hardware & Chips** - AI accelerators, chip developments (NVIDIA, AMD, etc.)
-4. 🚀 **Product & Industry** - Major AI product launches, startup news, partnerships
-5. 🎯 **Emerging Trends** - Novel applications, safety discussions, wild cards
+**Required Sections (IN THIS ORDER):**
+
+1. 🇺🇸 **USA Tech & AI** - American companies, Silicon Valley, US policy, major announcements
+2. 🇮🇳 **India Tech & AI** - Indian startups, government initiatives, local developments, funding
+3. 🌏 **Global Tech News** - China, Japan, EU, Southeast Asia, rest of world
+4. 🔬 **Research & Models** - New AI models, research breakthroughs, papers (any country)
+5. 💻 **Hardware & Chips** - NVIDIA, AMD, TSMC, Intel, chip developments globally
+6. 🚀 **Product Launches** - New AI products, features, services worldwide
+7. 💰 **Funding & M&A** - Major deals, IPOs, acquisitions, partnerships
+8. 🎯 **Wild Cards** - Breakthroughs, controversies, emerging trends
 
 **Format Requirements:**
-- Each section: 2-3 items (10-15 items total)
-- Each item: **Bold headline** + 1-2 sentence insight
-- Use bullet points (•) for items
-- Be specific about companies, models, and developments
-- Make it informative and engaging
+- Use bullet points (•) NOT numbered lists
+- Each item: **Bold headline** followed by 1-2 sentence description
+- NO ## markdown headers or ### - use emoji + **Bold Section Names** only
+- Keep sections clean and scannable
+- 2-3 items per section (16-24 items total)
+
+**Example Format:**
+🇺🇸 **USA Tech & AI**
+
+• **OpenAI releases GPT-5 with breakthrough reasoning**: Latest model shows unprecedented capabilities in complex problem-solving. Early tests show 40% improvement in coding and math tasks.
+
+• **US Senate passes AI Safety Act with bipartisan support**: New legislation establishes federal framework for AI regulation. Bill includes provisions for algorithmic transparency and liability.
+
+🇮🇳 **India Tech & AI**
+
+• **Ola founder launches new AI startup with $50M funding**: Bhavish Aggarwal unveils Krutrim AI, India's first homegrown LLM. Model trained on 20+ Indian languages including Hindi, Tamil, Telugu.
+
+• **IIT Madras develops low-cost AI chip for edge computing**: Indian researchers create affordable AI accelerator for rural healthcare. Chip costs under $10 and runs on solar power.
 
 **Guidelines:**
-- Focus on significant, realistic developments in the AI space
-- Include specific names of companies, models, and technologies
-- Keep tone professional and factual
-- Organize by importance within each section
+- Be specific with company names, numbers, and locations
+- USA and India sections should have DOMESTIC news from those countries
+- Global section covers REST OF WORLD (China, Japan, EU, etc.)
+- Professional tone, no fluff
+- NO introductory paragraphs - jump straight into sections
+- Make items newsworthy and realistic
 
 Create the digest now:"""
 
@@ -80,6 +108,26 @@ try:
     )
     
     digest_text = response.text.strip()
+    
+    # Clean up unwanted markdown formatting
+    digest_text = digest_text.replace('##', '')  # Remove ## headers
+    digest_text = digest_text.replace('###', '')  # Remove ### headers
+    digest_text = digest_text.replace('---', '')  # Remove horizontal rules
+    
+    # Remove intro/outro fluff - keep only content from first emoji onwards
+    lines = digest_text.split('\n')
+    cleaned_lines = []
+    started = False
+    
+    for line in lines:
+        # Start collecting when we hit first emoji section
+        if any(emoji in line for emoji in ['🇺🇸', '🇮🇳', '🌏', '🔬', '💻', '🚀', '💰', '🎯']):
+            started = True
+        
+        if started:
+            cleaned_lines.append(line)
+    
+    digest_text = '\n'.join(cleaned_lines).strip()
     
     print(f"✅ Digest generated ({len(digest_text)} characters)")
     
