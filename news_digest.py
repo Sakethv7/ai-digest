@@ -1,13 +1,4 @@
-digest_text = response.text.strip()
-    
-    # Clean up unwanted markdown formatting
-    digest_text = digest_text.replace('##', '')  # Remove ## headers
-    digest_text = digest_text.replace('###', '')  # Remove ### headers
-    
-    # Remove any intro/outro paragraphs (text before first emoji section)
-    lines = digest_text.split('\n')
-    cleaned_lines = []
-    starteimport os
+import os
 import datetime as dt
 from dateutil import tz
 import requests
@@ -110,9 +101,9 @@ try:
     digest_text = response.text.strip()
     
     # Clean up unwanted markdown formatting
-    digest_text = digest_text.replace('##', '')  # Remove ## headers
-    digest_text = digest_text.replace('###', '')  # Remove ### headers
-    digest_text = digest_text.replace('---', '')  # Remove horizontal rules
+    digest_text = digest_text.replace('##', '')
+    digest_text = digest_text.replace('###', '')
+    digest_text = digest_text.replace('---', '')
     
     # Remove intro/outro fluff - keep only content from first emoji onwards
     lines = digest_text.split('\n')
@@ -132,7 +123,7 @@ try:
     print(f"✅ Digest generated ({len(digest_text)} characters)")
     
     # Split digest into manageable chunks for Slack (max 3000 chars per block)
-    max_length = 2800  # Conservative buffer
+    max_length = 2800
     
     digest_blocks = []
     
@@ -220,7 +211,7 @@ try:
     # Slack has a limit of 50 blocks per message
     if len(blocks) > 50:
         print(f"⚠️  Too many blocks ({len(blocks)}), truncating to 50")
-        blocks = blocks[:49]  # Keep header and first content
+        blocks = blocks[:49]
         blocks.append({
             "type": "context",
             "elements": [{
