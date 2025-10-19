@@ -8,6 +8,7 @@ import google.generativeai as genai
 TIMEZONE = "America/New_York"
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
+SLACK_USER_ID = os.environ.get("SLACK_USER_ID", "U07DZBQGXDK")  # Default to your ID
 
 # Configure Gemini
 genai.configure(api_key=GEMINI_API_KEY)
@@ -43,46 +44,72 @@ except Exception as e:
 
 prompt = f"""You are an expert AI/tech news editor creating today's digest for {today} ({TIMEZONE}).
 
-**Task:** Create a comprehensive daily digest with SEPARATE sections for USA, India, and global coverage.
+**Task:** Create a clean, focused daily digest covering USA, India, and key global AI developments.
 
 **Required Sections (IN THIS ORDER):**
 
-1. 🇺🇸 **USA Tech & AI** - American companies, Silicon Valley, US policy, major announcements
-2. 🇮🇳 **India Tech & AI** - Indian startups, government initiatives, local developments, funding
-3. 🌏 **Global Tech News** - China, Japan, EU, Southeast Asia, rest of world
-4. 🔬 **Research & Models** - New AI models, research breakthroughs, papers (any country)
-5. 💻 **Hardware & Chips** - NVIDIA, AMD, TSMC, Intel, chip developments globally
-6. 🚀 **Product Launches** - New AI products, features, services worldwide
-7. 💰 **Funding & M&A** - Major deals, IPOs, acquisitions, partnerships
-8. 🎯 **Wild Cards** - Breakthroughs, controversies, emerging trends
+1. 🇺🇸 USA Tech & AI
+   - Focus: Major AI companies (OpenAI, Google, Microsoft, Anthropic, Meta)
+   - US government AI policies, regulations, funding initiatives
+   - Product launches, new AI models, research breakthroughs
+
+2. 🇮🇳 India Tech & AI
+   - Focus: Indian AI startups, government initiatives
+   - Major funding rounds, product launches
+   - IIT/academic research, local AI developments
+
+3. 🌏 Global AI News
+   - Focus: China AI developments, Japan tech initiatives
+   - EU AI policies and regulations (focus on policy, not random tech news)
+   - Major international AI partnerships and projects
+
+4. 💰 Funding & M&A
+   - Major AI/tech funding rounds (>$20M)
+   - Acquisitions, IPOs, strategic investments
+   - Focus on AI-related deals globally
+
+5. 🚀 Product Launches
+   - New AI products, features, tools
+   - Major software/hardware releases
+   - Focus on practical, newsworthy launches
+
+6. 🎯 Notable Mentions
+   - Interesting breakthroughs, controversies
+   - Policy changes, industry shifts
+   - Wild cards worth knowing
 
 **Format Requirements:**
-- Use bullet points (•) NOT numbered lists
-- Each item: **Bold headline** followed by 1-2 sentence description
-- NO ## markdown headers or ### - use emoji + **Bold Section Names** only
-- Keep sections clean and scannable
-- 2-3 items per section (16-24 items total)
+- Section headers: emoji + **bold text** (use **Header Name**)
+- Each bullet: Plain text headline - Plain text description
+- NO bold in bullet points, only in section headers
+- NO markdown except bullets (•) and section headers
+- 2-3 items per section
+- Keep descriptions to 1-2 sentences
 
 **Example Format:**
 🇺🇸 **USA Tech & AI**
 
-• **OpenAI releases GPT-5 with breakthrough reasoning**: Latest model shows unprecedented capabilities in complex problem-solving. Early tests show 40% improvement in coding and math tasks.
+• OpenAI launches GPT-5 with multimodal capabilities - New model processes text, images, and audio simultaneously with 35% performance improvement over GPT-4.
 
-• **US Senate passes AI Safety Act with bipartisan support**: New legislation establishes federal framework for AI regulation. Bill includes provisions for algorithmic transparency and liability.
+• US Congress passes AI Safety Framework Act - Bipartisan legislation establishes federal oversight for high-risk AI systems and requires transparency in algorithmic decision-making.
 
 🇮🇳 **India Tech & AI**
 
-• **Ola founder launches new AI startup with $50M funding**: Bhavish Aggarwal unveils Krutrim AI, India's first homegrown LLM. Model trained on 20+ Indian languages including Hindi, Tamil, Telugu.
+• Krutrim AI raises $75M Series A from Peak XV Partners - Bangalore-based startup building India-first LLM trained on 22 Indian languages for local market needs.
 
-• **IIT Madras develops low-cost AI chip for edge computing**: Indian researchers create affordable AI accelerator for rural healthcare. Chip costs under $10 and runs on solar power.
+• Government launches National AI Mission with $1.2B budget - Initiative focuses on building computing infrastructure, developing local talent, and supporting AI startups across India.
 
 **Guidelines:**
-- Be specific with company names, numbers, and locations
-- USA and India sections should have DOMESTIC news from those countries
-- Global section covers REST OF WORLD (China, Japan, EU, etc.)
-- Professional tone, no fluff
-- NO introductory paragraphs - jump straight into sections
-- Make items newsworthy and realistic
+- Section headers: emoji + bold text (e.g., 🇺🇸 bold text(USA Tech & AI))
+- Bullet points: plain text only, NO bold
+- Focus on: policies, funding, products, initiatives, research
+- Skip random European tech news unless it's major AI policy
+- USA: Big tech + government initiatives
+- India: Startups, government programs, academic research
+- Global: China/Japan developments, EU AI regulations only
+- Be specific: company names, funding amounts, numbers
+- Professional, newsworthy tone
+- NO introductions or conclusions
 
 Create the digest now:"""
 
@@ -105,6 +132,26 @@ try:
     digest_text = digest_text.replace('###', '')
     digest_text = digest_text.replace('---', '')
     
+    # Remove bold from bullet points but keep section headers bold
+    import re
+    lines = digest_text.split('\n')
+    cleaned_lines = []
+    
+    for line in lines:
+        # If line starts with emoji (section header), keep it as is
+        if any(emoji in line[:5] for emoji in ['🇺🇸', '🇮🇳', '🌏', '💰', '🚀', '🎯']):
+            cleaned_lines.append(line)
+        # If line starts with bullet, remove any bold
+        elif line.strip().startswith('•'):
+            # Remove **text** patterns from bullet lines only
+            line = re.sub(r'\*\*([^*]+)\*\*', r'\1', line)
+            line = re.sub(r'\*([^*]+)\*', r'\1', line)
+            cleaned_lines.append(line)
+        else:
+            cleaned_lines.append(line)
+    
+    digest_text = '\n'.join(cleaned_lines)
+    
     # Remove intro/outro fluff - keep only content from first emoji onwards
     lines = digest_text.split('\n')
     cleaned_lines = []
@@ -112,7 +159,7 @@ try:
     
     for line in lines:
         # Start collecting when we hit first emoji section
-        if any(emoji in line for emoji in ['🇺🇸', '🇮🇳', '🌏', '🔬', '💻', '🚀', '💰', '🎯']):
+        if any(emoji in line for emoji in ['🇺🇸', '🇮🇳', '🌏', '💰', '🚀', '🎯']):
             started = True
         
         if started:
@@ -181,6 +228,13 @@ try:
             "text": {
                 "type": "plain_text",
                 "text": f"📰 AI/Tech Daily Digest — {today}"
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"👋 <@{SLACK_USER_ID}> Your daily AI digest is ready!"
             }
         }
     ]

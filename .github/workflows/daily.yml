@@ -1,35 +1,30 @@
 name: Daily AI Digest
 
-# Triggers the workflow
 on:
-  # TEMPORARY TEST SCHEDULE: Runs at 13:10 UTC (9:10 AM EDT) on all days
   schedule:
-    - cron: "05 12 * * *"  # <-- This is the only change for the test - why is this not working? 
-  
-  # Allows manual trigger from the Actions tab
-  workflow_dispatch: {}
+    # Runs at 1:00 PM UTC = 9:00 AM EDT / 8:00 AM EST
+    - cron: "0 13 * * *"
+  workflow_dispatch: {}  # Allows manual trigger
 
 jobs:
   run:
-    # Environment to run the job on
     runs-on: ubuntu-latest
     
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: 🐍 Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: pip install -r requirements.txt
       
-      - name: 🚀 Run digest script
+      - name: Run digest script
         run: python news_digest.py
         env:
-          # Inject secrets from the repository settings
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_USER_ID: ${{ secrets.SLACK_USER_ID }}
