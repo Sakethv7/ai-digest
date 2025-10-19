@@ -100,7 +100,7 @@ prompt = f"""You are an expert AI/tech news editor creating today's digest for {
 • Government launches National AI Mission with $1.2B budget - Initiative focuses on building computing infrastructure, developing local talent, and supporting AI startups across India.
 
 **Guidelines:**
-- Section headers: emoji + bold text (e.g., 🇺🇸 **USA Tech & AI**)
+- Section headers: emoji + **bold text** (e.g., 🇺🇸 **USA Tech & AI**)
 - Bullet points: plain text only, NO bold
 - Focus on: policies, funding, products, initiatives, research
 - Skip random European tech news unless it's major AI policy
@@ -138,8 +138,9 @@ try:
     cleaned_lines = []
     
     for line in lines:
-        # If line starts with emoji (section header), keep it as is
-        if any(emoji in line[:5] for emoji in ['🇺🇸', '🇮🇳', '🌏', '💰', '🚀', '🎯']):
+        # If line contains emoji and **, it's likely a section header - keep bold
+        if any(emoji in line for emoji in ['🇺🇸', '🇮🇳', '🌏', '💰', '🚀', '🎯']) and '**' in line:
+            # This is a section header, keep the bold
             cleaned_lines.append(line)
         # If line starts with bullet, remove any bold
         elif line.strip().startswith('•'):
