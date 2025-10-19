@@ -100,7 +100,7 @@ prompt = f"""You are an expert AI/tech news editor creating today's digest for {
 • Government launches National AI Mission with $1.2B budget - Initiative focuses on building computing infrastructure, developing local talent, and supporting AI startups across India.
 
 **Guidelines:**
-- Section headers: emoji + bold text (e.g., 🇺🇸 bold text(USA Tech & AI))
+- Section headers: emoji + bold text (e.g., 🇺🇸 **USA Tech & AI**)
 - Bullet points: plain text only, NO bold
 - Focus on: policies, funding, products, initiatives, research
 - Skip random European tech news unless it's major AI policy
