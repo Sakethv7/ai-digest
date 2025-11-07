@@ -82,11 +82,11 @@ This is a TECHNICAL digest - focus on HOW things work, new methodologies, open s
    - YouTube channels/videos explaining concepts
    - Books, papers with code implementations
 
-6. 🎯 Trending on X (Twitter)
-   - Viral AI demos and projects
-   - Interesting discussions from AI researchers
-   - Cool use cases and applications
-   - Memes that teach concepts
+6. 🔧 Tools & Software Updates
+   - New releases of AI/ML tools and frameworks
+   - IDE plugins, extensions, integrations
+   - CLI tools, notebooks, debugging tools
+   - Developer productivity tools for AI work
 
 **Format Requirements:**
 - Section headers: emoji + *Header Text* (single asterisks)
