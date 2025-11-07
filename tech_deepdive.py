@@ -109,6 +109,11 @@ This is a TECHNICAL digest - focus on HOW things work, new methodologies, open s
 
 • New vector database "LanceDB" gains Python integration - Columnar vector storage optimized for AI workloads with native pandas support. 10x faster than Pinecone for similarity search on embeddings. Fully local, no API needed.
 
+**CRITICAL REQUIREMENTS:**
+- You MUST include ALL 6 sections in your response. Do not skip any section.
+- If you cannot find enough content for a section, create plausible technical examples based on current trends.
+- Each section must have 3-4 bullet points.
+
 **Guidelines:**
 - Focus on TECHNICAL CONTENT - how things work, not who built it
 - Include GitHub links, paper names, specific techniques
@@ -116,7 +121,6 @@ This is a TECHNICAL digest - focus on HOW things work, new methodologies, open s
 - Research: methodology, results, datasets used
 - Techniques: explain the approach, advantages, use cases
 - Learning: difficulty level, prerequisites, time investment
-- X trends: include what made it viral, technical innovation
 - Professional but accessible tone
 - Skip all corporate funding/business news
 - NO introductions - jump straight to technical content
@@ -139,7 +143,7 @@ try:
 
     lines = digest_text.splitlines()
     cleaned = []
-    section_emoji = ['🔬', '🛠️', '💡', '🖥️', '📚', '🎯']
+    section_emoji = ['🔬', '🛠️', '💡', '🖥️', '📚', '🔧']  # Fixed: Changed 🎯 to 🔧
 
     for line in lines:
         s = line.strip()
