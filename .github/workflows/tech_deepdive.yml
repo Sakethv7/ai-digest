@@ -1,0 +1,31 @@
+name: AI Tech Deep Dive
+
+on:
+  schedule:
+    # Tuesday and Friday at 9:00 AM ET (13:00 UTC)
+    - cron: "0 13 * * 2"  # Tuesday
+    - cron: "0 13 * * 5"  # Friday
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Run tech deep dive
+        run: python tech_deepdive.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SLACK_WEBHOOK_URL_LEARNING: ${{ secrets.SLACK_WEBHOOK_URL_LEARNING }}
+          SLACK_USER_ID: ${{ secrets.SLACK_USER_ID }}
