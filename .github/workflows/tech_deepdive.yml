@@ -2,9 +2,8 @@ name: AI Tech Deep Dive
 
 on:
   schedule:
-    # Tuesday and Friday at 9:00 AM ET (13:00 UTC)
-    - cron: "0 13 * * 2"  # Tuesday
-    - cron: "0 13 * * 5"  # Friday
+    # Wednesday at 9:00 AM ET (13:00 UTC) - Weekly deep dive
+    - cron: "0 13 * * 3"  # Wednesday
   workflow_dispatch: {}
 
 jobs:

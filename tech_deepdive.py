@@ -18,7 +18,7 @@ today = dt.datetime.now(tz.gettz(TIMEZONE)).date()
 day_of_week = today.strftime('%A')
 current_time = dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%I:%M %p %Z')
 
-print("🚀 Starting AI Tech Deep Dive with Gemini...")
+print("🚀 Starting Weekly AI Tech Deep Dive with Gemini...")
 print(f"📅 Date: {today.isoformat()} ({day_of_week})")
 
 # List available models (debug)
@@ -42,11 +42,11 @@ for name in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini
 if model is None:
     raise SystemExit("No Gemini model available")
 
-prompt = f"""You are an expert AI/ML researcher and educator creating a technical deep dive digest for {today.isoformat()} ({day_of_week}).
+prompt = f"""You are an expert AI/ML researcher and educator creating a comprehensive WEEKLY technical deep dive digest for {today.isoformat()} ({day_of_week}).
 
-Create a comprehensive technical digest covering open source AI, new techniques, research papers, and learning resources from the past 3-4 days.
+Create an in-depth technical digest covering the most significant open source AI developments, new techniques, research papers, and learning resources from the PAST 7 DAYS.
 
-This is a TECHNICAL digest - focus on HOW things work, new methodologies, open source tools, and educational content.
+This is a WEEKLY TECHNICAL digest - be thorough and cover the MOST IMPORTANT developments of the entire week. Focus on HOW things work, new methodologies, open source tools, and educational content. Prioritize the most impactful and noteworthy items.
 
 YOU MUST CREATE EXACTLY 6 SECTIONS WITH EXACTLY THESE HEADERS (copy them exactly):
 
@@ -57,7 +57,7 @@ YOU MUST CREATE EXACTLY 6 SECTIONS WITH EXACTLY THESE HEADERS (copy them exactly
 📚 *Learning Resources*
 🔧 *Tools & Software Updates*
 
-Each section MUST have 3-4 bullet points starting with •
+Each section MUST have 4-5 bullet points starting with • (this is a weekly digest, so be comprehensive)
 
 Section 1 - 🔬 *Research Papers & Breakthroughs*
 Cover: Recent arXiv papers, novel techniques, architectures, algorithms, academic research, benchmark improvements, new datasets
@@ -98,7 +98,8 @@ IMPORTANT RULES:
 4. End IMMEDIATELY after last section - no conclusion
 5. Include ALL 6 sections - do not skip any
 6. Focus on technical details, not corporate news
-7. 3-4 items per section (18-24 items total)
+7. 4-5 items per section (24-30 items total) - this is a WEEKLY digest, be comprehensive
+8. Prioritize the most significant and impactful developments from the entire week
 
 Begin with the first section now:"""
 
@@ -110,7 +111,7 @@ for attempt in range(max_retries):
             prompt,
             generation_config=genai.types.GenerationConfig(
                 temperature=0.7,
-                max_output_tokens=4000,
+                max_output_tokens=6000,
             ),
         )
         digest_text = (response.text or "").strip()
@@ -200,11 +201,11 @@ max_len = 2800
 blocks = [
     {
         "type": "header",
-        "text": {"type": "plain_text", "text": f"🔬 AI Tech Deep Dive — {today.isoformat()}"}
+        "text": {"type": "plain_text", "text": f"🔬 Weekly AI Tech Deep Dive — {today.isoformat()}"}
     },
     {
         "type": "section",
-        "text": {"type": "mrkdwn", "text": f"👋 <@{SLACK_USER_ID}> Your tech deep dive is ready!\n🛠️ *Focus:* Open source, research, techniques & learning"}
+        "text": {"type": "mrkdwn", "text": f"👋 <@{SLACK_USER_ID}> Your weekly tech deep dive is ready!\n🛠️ *Focus:* Open source, research, techniques & learning\n📅 *Coverage:* Past 7 days of AI developments"}
     },
     {"type": "divider"}
 ]
@@ -234,7 +235,7 @@ else:
 blocks += [
     {"type": "divider"},
     {"type": "context", "elements": [
-        {"type": "mrkdwn", "text": f"_Powered by Gemini • {current_time} • Tech Deep Dive: Tue & Fri_"}
+        {"type": "mrkdwn", "text": f"_Powered by Gemini • {current_time} • Weekly Tech Deep Dive: Every Wednesday_"}
     ]}
 ]
 
@@ -248,7 +249,7 @@ if len(blocks) > 50:
 
 # --- Post to Slack ---
 payload = {
-    "text": f"<@{SLACK_USER_ID}> AI Tech Deep Dive — {today.isoformat()}",
+    "text": f"<@{SLACK_USER_ID}> Weekly AI Tech Deep Dive — {today.isoformat()}",
     "blocks": blocks
 }
 
