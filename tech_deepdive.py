@@ -3,7 +3,7 @@ import re
 import datetime as dt
 from dateutil import tz
 import requests
-import google.generativeai as genai
+from google import genai
 
 # Configuration
 TIMEZONE = "America/New_York"
@@ -11,8 +11,8 @@ GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL_LEARNING"]  # Different webhook for learning
 SLACK_USER_ID = os.environ.get("SLACK_USER_ID", "U07DZBQGXDK")
 
-# Configure Gemini
-genai.configure(api_key=GEMINI_API_KEY)
+# Configure Gemini client
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 today = dt.datetime.now(tz.gettz(TIMEZONE)).date()
 day_of_week = today.strftime('%A')
@@ -21,26 +21,10 @@ current_time = dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%I:%M %p %Z')
 print("🚀 Starting Weekly AI Tech Deep Dive with Gemini...")
 print(f"📅 Date: {today.isoformat()} ({day_of_week})")
 
-# List available models (debug)
-print("📋 Checking available models...")
-try:
-    for m in genai.list_models():
-        if 'generateContent' in m.supported_generation_methods:
-            print(f"  ✓ {m.name}")
-except Exception as e:
-    print(f"  ⚠️  Could not list models: {e}")
-
-# Pick model
-model = None
-for name in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"]:
-    try:
-        model = genai.GenerativeModel(name)
-        print(f"✅ Using model: {name}")
-        break
-    except Exception as e:
-        print(f"⚠️  {name} not available: {e}")
-if model is None:
-    raise SystemExit("No Gemini model available")
+# Model selection (in order of preference)
+MODEL_CHOICES = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+selected_model = MODEL_CHOICES[0]
+print(f"✅ Using model: {selected_model}")
 
 prompt = f"""You are an expert AI/ML researcher and educator creating a comprehensive WEEKLY technical deep dive digest for {today.isoformat()} ({day_of_week}).
 
@@ -107,9 +91,10 @@ max_retries = 3
 for attempt in range(max_retries):
     try:
         print(f"🤖 Generating tech deep dive (attempt {attempt + 1}/{max_retries})...")
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
+        response = client.models.generate_content(
+            model=selected_model,
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
                 temperature=0.7,
                 max_output_tokens=6000,
             ),
