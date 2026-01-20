@@ -248,17 +248,18 @@ else:
     print(f"⚠️  Content too long ({len(digest_text)} chars), splitting...")
     chunk = ""
     chunk_count = 0
+    min_chunk_len = 100  # Minimum chunk size to avoid invalid blocks
+
     for para in digest_text.split("\n\n"):
-        if len(chunk) + len(para) + 2 > max_len:
-            if chunk:
-                chunk_count += 1
-                print(f"   Chunk {chunk_count}: {len(chunk)} chars")
-                blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": chunk.strip()}})
-                blocks.append({"type": "divider"})
+        if len(chunk) + len(para) + 2 > max_len and len(chunk) >= min_chunk_len:
+            chunk_count += 1
+            print(f"   Chunk {chunk_count}: {len(chunk)} chars")
+            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": chunk.strip()}})
+            blocks.append({"type": "divider"})
             chunk = para + "\n\n"
         else:
             chunk += para + "\n\n"
-    if chunk:
+    if chunk.strip():
         chunk_count += 1
         print(f"   Chunk {chunk_count}: {len(chunk)} chars")
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": chunk.strip()}})
