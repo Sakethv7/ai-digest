@@ -18,7 +18,7 @@ today = dt.datetime.now(tz.gettz(TIMEZONE)).date()
 day_of_week = today.strftime('%A')
 current_time = dt.datetime.now(tz.gettz(TIMEZONE)).strftime('%I:%M %p %Z')
 
-print("🚀 Starting Weekly AI Tech Deep Dive with Gemini...")
+print("🚀 Starting Weekly AI Production & Research Digest with Gemini...")
 print(f"📅 Date: {today.isoformat()} ({day_of_week})")
 
 # Model selection (in order of preference)
@@ -26,66 +26,117 @@ MODEL_CHOICES = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
 selected_model = MODEL_CHOICES[0]
 print(f"✅ Using model: {selected_model}")
 
-prompt = f"""You are an expert AI/ML researcher and educator creating a comprehensive WEEKLY technical deep dive digest for {today.isoformat()} ({day_of_week}).
+prompt = f"""You are an expert AI/ML engineer who bridges research and production, creating a WEEKLY digest for {today.isoformat()} ({day_of_week}).
 
-Create an in-depth technical digest covering the most significant open source AI developments, new techniques, research papers, and learning resources from the PAST 7 DAYS.
+Create a PRODUCTION-HEAVY digest (60/40 split) focusing on:
+1. Production blog posts showing REAL IMPLEMENTATIONS at scale (PRIMARY FOCUS - 60%)
+2. Research papers with REAL-WORLD PRODUCTION IMPACT (40%)
 
-This is a WEEKLY TECHNICAL digest - be thorough and cover the MOST IMPORTANT developments of the entire week. Focus on HOW things work, new methodologies, open source tools, and educational content. Prioritize the most impactful and noteworthy items.
+This digest must help engineers understand what's actually working in production AND which research is worth paying attention to. Cover the PAST 7 DAYS.
 
-YOU MUST CREATE EXACTLY 6 SECTIONS WITH EXACTLY THESE HEADERS (copy them exactly):
+YOU MUST CREATE EXACTLY 2 SECTIONS WITH EXACTLY THESE HEADERS (copy them exactly):
 
-🔬 *Research Papers & Breakthroughs*
-🛠️ *Open Source AI Projects*
-💡 *Techniques & Methods*
-🖥️ *AI Infrastructure & Chips*
-📚 *Learning Resources*
-🔧 *Tools & Software Updates*
+🏗️ *PRODUCTION & ENGINEERING*
+🔬 *RESEARCH WITH IMPACT*
 
-Each section MUST have 4-5 bullet points starting with • (this is a weekly digest, so be comprehensive)
+PRODUCTION SECTION COMES FIRST and should be MORE COMPREHENSIVE (4-5 items).
+RESEARCH SECTION follows with focused, high-signal papers (2-3 items).
 
-Section 1 - 🔬 *Research Papers & Breakthroughs*
-Cover: Recent arXiv papers, novel techniques, architectures, algorithms, academic research, benchmark improvements, new datasets
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Section 2 - 🛠️ *Open Source AI Projects*
-Cover: New open source LLMs/models/frameworks, GitHub projects, community tools/libraries, Hugging Face releases
+SECTION 1 - 🏗️ *PRODUCTION & ENGINEERING* (4-5 posts) — PRIMARY FOCUS
 
-Section 3 - 💡 *Techniques & Methods*
-Cover: Training techniques (LoRA, QLoRA, RLHF), prompt engineering, RAG improvements, vector DB innovations, agentic AI frameworks
+SOURCE REQUIREMENTS - Engineering blogs from:
+- AI Labs: Anthropic, OpenAI, Google AI/DeepMind, Meta AI, Cohere, Mistral
+- Big Tech: Netflix Tech, Uber Engineering, LinkedIn Engineering, Airbnb Engineering, Spotify Engineering, DoorDash Engineering
+- ML Platforms: Weights & Biases, Databricks, Modal, Replicate, Together.ai, Anyscale, Run:ai
+- Infrastructure: AWS ML Blog, Google Cloud AI, Azure AI
 
-Section 4 - 🖥️ *AI Infrastructure & Chips*
-Cover: GPU/TPU developments, edge AI, quantization techniques (GGUF, GPTQ), inference optimization, local LLM running (Ollama, LM Studio)
+CONTENT FOCUS - Real-world implementation stories:
+- Deployment patterns and architectures
+- Scaling challenges and solutions
+- Cost optimizations with specific numbers
+- Real-world tradeoffs and lessons learned
+- Production incidents and post-mortems
+- MLOps and infrastructure decisions
 
-Section 5 - 📚 *Learning Resources*
-Cover: New courses, tutorials, guides, technical blog posts, YouTube videos/channels, books, papers with code
+FOR EACH POST INCLUDE:
+- Company name
+- Problem they solved
+- Architecture/approach used
+- Metrics/results (latency, cost savings, scale)
+- Key lessons learned
+- Link to original post if available
 
-Section 6 - 🔧 *Tools & Software Updates*
-Cover: New releases of AI/ML tools/frameworks, IDE plugins/extensions, CLI tools, notebooks, debugging tools, developer productivity tools
+TAGS TO ADD: [MLOps] [Infrastructure] [Scaling] [Cost] [Reliability] [Monitoring] [RAG] [Agents] [Fine-tuning] [Serving]
 
-**Format for each bullet point:**
-• "Headline or tool name" - brief description - Technical details in 2-3 sentences. Include specifics like model sizes, performance metrics, GitHub repos, techniques used.
+BONUS: When a production post references specific research/papers they implemented, MENTION IT. This connects the dots between research and production.
 
-**Example:**
-🔬 *Research Papers & Breakthroughs*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• "FlashAttention-3" achieves 2x speedup for long context - New paper from Stanford introduces optimized attention mechanism using GPU memory hierarchy. Enables 100K token context windows with minimal memory overhead. Code and benchmarks available on GitHub.
+SECTION 2 - 🔬 *RESEARCH WITH IMPACT* (2-3 papers) — HIGH-SIGNAL ONLY
 
-• Self-supervised learning breakthrough for multimodal models - Researchers combine CLIP-style contrastive learning with masked prediction to create models that learn from unlabeled video data. Achieves 95% of supervised performance with 10x less labeled data.
+SOURCE REQUIREMENTS:
+- ArXiv, Papers with Code, NeurIPS, ICML, ACL, EMNLP, CVPR, ICLR proceedings
+- ONLY papers from the past 7 days with code/implementations available
 
-🛠️ *Open Source AI Projects*
+CONTENT FOCUS - Only include papers that solve REAL ENGINEERING PROBLEMS:
+- Efficiency gains (faster inference, reduced memory, lower latency)
+- Deployment innovations (quantization, distillation, edge deployment)
+- Cost reduction techniques (fewer parameters, cheaper training)
+- Scalability solutions (distributed training, serving at scale)
+- Production-ready techniques (RAG improvements, agent reliability, tool use)
 
-• Nous Research releases "Hermes 3" - Open source 405B parameter model fine-tuned on Llama 3.1 base with advanced function calling. Outperforms GPT-4 on coding benchmarks. Available in GGUF format for local deployment.
+FOR EACH PAPER INCLUDE:
+- Paper title (in quotes)
+- Institution/authors
+- Key innovation (what's new)
+- Production relevance (why engineers should care NOW)
+- Metrics/results if available
+- Link to code/paper if available
 
-IMPORTANT RULES:
-1. NO bold (**) in bullet points - only plain text
-2. Section headers use single asterisks: 🔬 *Research Papers & Breakthroughs*
-3. Start IMMEDIATELY with first section - no introduction
-4. End IMMEDIATELY after last section - no conclusion
-5. Include ALL 6 sections - do not skip any
-6. Focus on technical details, not corporate news
-7. 4-5 items per section (24-30 items total) - this is a WEEKLY digest, be comprehensive
-8. Prioritize the most significant and impactful developments from the entire week
+TAGS TO ADD: [NLP] [CV] [MLOps] [Infrastructure] [RAG] [Agents] [Efficiency] [Quantization] [Fine-tuning] [Serving]
 
-Begin with the first section now:"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**FORMAT FOR EACH BULLET POINT:**
+• "Title" [TAG1] [TAG2] - Brief description. Technical details in 2-3 sentences with specific metrics, architecture choices, and practical takeaways.
+
+**EXAMPLE OUTPUT:**
+
+🏗️ *PRODUCTION & ENGINEERING*
+
+• Anthropic: "Building Reliable AI Agents" [Agents] [Reliability] - How Anthropic designs agents that fail gracefully. Architecture uses explicit state machines with rollback capabilities. Reduced agent failure rate from 23% to 4% in production. Key lesson: always design for partial failures.
+
+• Netflix: "Scaling Recommendations with LLMs" [Scaling] [RAG] - Netflix replaced embeddings with LLM-generated explanations. Hybrid architecture serves 200M users with p99 latency under 100ms. Cost optimization: cache common query patterns, reducing LLM calls by 60%.
+
+• Uber: "Real-time Feature Store at Scale" [Infrastructure] [MLOps] - Uber rebuilt their feature store to handle 10M QPS with sub-10ms latency. Key insight: separate hot/cold storage tiers reduced costs by 40% while improving p99 latency.
+
+• Modal: "Serverless GPU Inference Patterns" [Serving] [Cost] - How Modal optimizes cold starts for GPU workloads. Achieved 2-second cold starts for 70B models using checkpoint streaming. Shares patterns for batching and autoscaling.
+
+🔬 *RESEARCH WITH IMPACT*
+
+• "Speculative Decoding for LLM Inference" [Efficiency] [Serving] - Google Research paper achieves 2-3x inference speedup without quality loss. Uses small draft model to propose tokens, verified by large model in parallel. Production-ready technique already deployed in vLLM and TensorRT-LLM.
+
+• "LoRA Land: Fine-tuning with 310 Adapters" [Fine-tuning] [Efficiency] - Stanford study shows LoRA matches full fine-tuning at 10% cost. Tested across 310 tasks with consistent results. Key insight: rank-16 sufficient for most production use cases.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL RULES:
+1. PRODUCTION FIRST: 🏗️ section comes first with 4-5 items (60%)
+2. RESEARCH SECOND: 🔬 section follows with 2-3 items (40%)
+3. NO bold (**) in bullet points - only plain text
+4. Section headers use single asterisks: 🏗️ *PRODUCTION & ENGINEERING*
+5. Start IMMEDIATELY with production section - no introduction
+6. End IMMEDIATELY after research section - no conclusion
+7. Include BOTH sections - do not skip any
+8. Add 1-2 relevant tags per item in square brackets
+9. Focus on ACTIONABLE insights engineers can apply
+10. Include specific metrics, numbers, and results where available
+11. Prioritize RECENT content from the past 7 days
+12. When production posts reference research papers, MENTION the connection
+
+Begin with the production section now:"""
 
 max_retries = 3
 for attempt in range(max_retries):
@@ -101,14 +152,10 @@ for attempt in range(max_retries):
         )
         digest_text = (response.text or "").strip()
 
-        # Check if all 6 sections are present
+        # Check if both sections are present
         section_headers = [
-            '🔬',  # Research Papers
-            '🛠️',  # Open Source
-            '💡',  # Techniques
-            '🖥️',  # Infrastructure
-            '📚',  # Learning
-            '🔧'   # Tools
+            '🏗️',  # Production & Engineering
+            '🔬',  # Research with Impact
         ]
         
         missing_sections = [emoji for emoji in section_headers if emoji not in digest_text]
@@ -121,7 +168,7 @@ for attempt in range(max_retries):
             else:
                 print("   Proceeding anyway (max retries reached)")
         else:
-            print("✅ All 6 sections found!")
+            print("✅ Both sections found!")
         
         break  # Success, exit retry loop
         
@@ -137,7 +184,7 @@ digest_text = digest_text.replace('---', '').replace('##', '').replace('###', ''
 
 lines = digest_text.splitlines()
 cleaned = []
-section_emoji = ['🔬', '🛠️', '💡', '🖥️', '📚', '🔧']
+section_emoji = ['🏗️', '🔬']
 
 for line in lines:
     s = line.strip()
@@ -186,11 +233,11 @@ max_len = 2800
 blocks = [
     {
         "type": "header",
-        "text": {"type": "plain_text", "text": f"🔬 Weekly AI Tech Deep Dive — {today.isoformat()}"}
+        "text": {"type": "plain_text", "text": f"🏗️ Weekly AI Production & Research Digest — {today.isoformat()}"}
     },
     {
         "type": "section",
-        "text": {"type": "mrkdwn", "text": f"👋 <@{SLACK_USER_ID}> Your weekly tech deep dive is ready!\n🛠️ *Focus:* Open source, research, techniques & learning\n📅 *Coverage:* Past 7 days of AI developments"}
+        "text": {"type": "mrkdwn", "text": f"👋 <@{SLACK_USER_ID}> Your weekly digest is ready!\n🏗️ *Focus:* Production implementations (60%) + Impactful research (40%)\n📅 *Coverage:* Past 7 days of AI developments"}
     },
     {"type": "divider"}
 ]
@@ -220,7 +267,7 @@ else:
 blocks += [
     {"type": "divider"},
     {"type": "context", "elements": [
-        {"type": "mrkdwn", "text": f"_Powered by Gemini • {current_time} • Weekly Tech Deep Dive: Every Wednesday_"}
+        {"type": "mrkdwn", "text": f"_Powered by Gemini • {current_time} • Weekly Production & Research Digest: Every Wednesday_"}
     ]}
 ]
 
@@ -234,7 +281,7 @@ if len(blocks) > 50:
 
 # --- Post to Slack ---
 payload = {
-    "text": f"<@{SLACK_USER_ID}> Weekly AI Tech Deep Dive — {today.isoformat()}",
+    "text": f"<@{SLACK_USER_ID}> Weekly AI Production & Research Digest — {today.isoformat()}",
     "blocks": blocks
 }
 
